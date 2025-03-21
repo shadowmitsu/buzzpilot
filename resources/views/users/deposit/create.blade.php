@@ -4,7 +4,8 @@
     <div class="row justify-content-center mt-3">
         <div class="col-lg-7">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+
+                <div class="card-header">
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
                             {{ session('error') }}

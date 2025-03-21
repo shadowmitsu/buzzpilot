@@ -56,26 +56,23 @@
                             <div class="flex-grow-1">
                                 <h6 class="fw-medium">ID Deposit</h6>#{{ $transactionDeposit->reference_id }}
                             </div>
-                            <div class="align-self-center">
-                                Ada yang salah/tidak sesuai?
-                                <a href="https://irvankedesmm.co.id/deposit/396739/cancel"
-                                    class="btn btn-danger bg-gradient btn-sm mx-1"><i class="fa fa-fw fa-times me-1"></i>
-                                    Batal</a>
-                            </div>
+                            @if ($transactionDeposit->paid_status == 'unpaid')     
+                                <div class="align-self-center">
+                                    Ada yang salah/tidak sesuai?
+                                    <a href=""
+                                        class="btn btn-danger bg-gradient btn-sm mx-1"><i class="fa fa-fw fa-times me-1"></i>
+                                        Batal</a>
+                                </div>
+                            @endif
                         </div>
                         <div class="border-bottom py-3">
                             <h6 class="fw-medium">Status</h6>
                             <div class="border-bottom py-3">
-                                <h6 class="fw-medium">Status</h6>
-                                @if ($transactionDeposit->status == 'pending')
+                                @if ($transactionDeposit->paid_status == 'unpaid')
                                     <span class="badge bg-warning bg-gradient">Belum Bayar</span>
-                                @elseif($transactionDeposit->status == 'process')
-                                    <span class="badge bg-info bg-gradient">Diproses</span>
-                                @elseif($transactionDeposit->status == 'approved')
-                                    <span class="badge bg-success bg-gradient">Disetujui</span>
-                                @elseif($transactionDeposit->status == 'rejected')
-                                    <span class="badge bg-danger bg-gradient">Ditolak</span>
-                                @elseif($transactionDeposit->status == 'canceled')
+                                @elseif($transactionDeposit->paid_status == 'paid')
+                                    <span class="badge bg-success bg-gradient">Berhasil Melakukan Pembayaran</span>
+                                @elseif($transactionDeposit->paid_status == 'canceled')
                                     <span class="badge bg-secondary bg-gradient">Dibatalkan</span>
                                 @endif
                             </div>

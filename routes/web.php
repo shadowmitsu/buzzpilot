@@ -3,9 +3,13 @@
 use App\Http\Controllers\CategoryServiceController;
 use App\Http\Controllers\ChaiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DigitalPlatformController;
+use App\Http\Controllers\IntercationTypeController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\OriginalServiceController;
 use App\Http\Controllers\PaymentAccountController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PrimaryServiceController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TransactionDepositController;
@@ -51,7 +55,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users/deposit/{a}/create', [UserDepositController::class, 'create'])->name('user.deposit.create');
     Route::get('/users/deposit/{a}/detail', [UserDepositController::class, 'detail'])->name('user.deposit.detail');
     Route::post('/users/deposit/store', [UserDepositController::class, 'storeDeposit'])->name('user.deposit.storeDeposit');
-    
+    Route::get('/get-services/{platformId}/{interactionId}', [UserTransactionController::class, 'getServices']);
+
     Route::get('/get-payment-account/{paymentId}', function($paymentId) {
         $account = \App\Models\PaymentAccount::where('payment_id', $paymentId)
             ->where('is_active', 1)
@@ -65,36 +70,54 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/get-services/{a}', [UserTransactionController::class, 'getServicesByCategory'])->name('users.transactions.getServicesByCategory');
     Route::middleware(['role:superadmin'])->group(function () {
-        Route::get('/service-categories', [CategoryServiceController::class, 'index'])->name('service_categories.index');
-        Route::post('/category-services/bulk-delete', [CategoryServiceController::class, 'bulkDelete'])->name('category-services.bulk-delete');
-        Route::post('/category-services/delete/{id}', [CategoryServiceController::class, 'delete'])->name('category-services.delete');
-        Route::post('/category-services/toggle-status/{id}', [CategoryServiceController::class, 'toggleStatus'])->name('category-services.toggle-status');
-
-
-        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
-        Route::get('/services/{a}/detail', [ServiceController::class, 'detail'])->name('services.detail');
-        Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
-
-        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
-        Route::post('/payments/store', [PaymentController::class, 'store'])->name('payments.store');
-        Route::put('/payments/{a}/update', [PaymentController::class, 'update'])->name('payments.update');
-        Route::delete('/payments/{a}/destroy', [PaymentController::class, 'destroy'])->name('payments.destroy');
-
-
-        Route::get('/payment-accounts', [PaymentAccountController::class, 'index'])->name('payment_accounts.index');
-        Route::post('/payment-accounts/store', [PaymentAccountController::class, 'store'])->name('payment_accounts.store');
-        Route::put('/payment-accounts/{a}/update', [PaymentAccountController::class, 'update'])->name('payment_accounts.update');
-        Route::delete('/payment-accounts/{a}/destroy', [PaymentAccountController::class, 'destroy'])->name('payment_accounts.destroy');
-
-        Route::get('/transaction/deposits', [TransactionDepositController::class, 'index'])->name('transactions.deposits.index');
-        Route::patch('/transaction/deposits/{a}/approve', [TransactionDepositController::class, 'approve'])->name('transactions.deposits.approve');
-        Route::patch('/transaction/deposits/{a}/rejected', [TransactionDepositController::class, 'rejected'])->name('transactions.deposits.rejected');
         
-        Route::get('/transaction/services', [TransactionServiceController::class, 'index'])->name('transactions.services.index');
+        Route::prefix('digital-platforms')->group(function () {
+            Route::get('/', [DigitalPlatformController::class, 'index'])->name('digital_platforms.index');
+            Route::post('/store', [DigitalPlatformController::class, 'store'])->name('digital_platforms.store');
+            Route::put('/{a}/update', [DigitalPlatformController::class, 'update'])->name('digital_platforms.update');
+            Route::delete('/{a}/destroy', [DigitalPlatformController::class, 'destroy'])->name('digital_platforms.destroy');
+        });
+        
+        Route::prefix('interaction-types')->group(function () {
+            Route::post('/store', [IntercationTypeController::class, 'store'])->name('interaction_types.store');
+            Route::put('/{a}/update', [IntercationTypeController::class, 'update'])->name('interaction_types.update');
+            Route::delete('/{a}/destroy', [IntercationTypeController::class, 'destroy'])->name('interaction_types.destroy');
+        });
+        
+        
+        Route::prefix('original-services')->group(function () {
+            Route::get('/', [OriginalServiceController::class, 'index'])->name('original_services.index');
+            Route::get('/update-digital-platforms', [OriginalServiceController::class, 'updateOriginalPlatform'])->name('original_services.updateOriginalPlatform');
+            Route::get('/update-interactions', [OriginalServiceController::class, 'updateOriginalInteraction'])->name('original_services.updateOriginalInteraction');
+            Route::get('/{a}/assign-primary-service', [OriginalServiceController::class, 'assignPrimaryService'])->name('original_services.assignPrimaryService');
+            Route::post('/store', [IntercationTypeController::class, 'store'])->name('interaction_types.store');
+            Route::put('/{a}/update', [IntercationTypeController::class, 'update'])->name('interaction_types.update');
+            Route::delete('/{a}/destroy', [IntercationTypeController::class, 'destroy'])->name('interaction_types.destroy');
+        });
+        
 
-        Route::get('website-settings', [WebsiteSettingController::class, 'index'])->name('website-settings.index');
-        Route::post('website-settings/save', [WebsiteSettingController::class, 'saveOrUpdate'])->name('website-settings.saveOrUpdate');
+        Route::prefix('primary-services')->group(function () {
+            Route::get('/', [PrimaryServiceController::class, 'index'])->name('primary_services.index');
+            Route::get('/{a}/detail', [PrimaryServiceController::class, 'detail'])->name('primary_services.detail');
+            Route::put('/{a}/update', [PrimaryServiceController::class, 'update'])->name('primary_services.update');
+        });
+        
+        Route::prefix('transaction')->group(function () {
+            Route::prefix('deposits')->group(function () {
+                Route::get('/', [TransactionDepositController::class, 'index'])->name('transactions.deposits.index');
+                Route::patch('/{a}/approve', [TransactionDepositController::class, 'approve'])->name('transactions.deposits.approve');
+                Route::patch('/{a}/rejected', [TransactionDepositController::class, 'rejected'])->name('transactions.deposits.rejected');
+            });
+        
+            Route::get('services', [TransactionServiceController::class, 'index'])->name('transactions.services.index');
+        });
+        
+        Route::prefix('website-settings')->group(function () {
+            Route::get('/', [WebsiteSettingController::class, 'index'])->name('website-settings.index');
+            Route::post('/save', [WebsiteSettingController::class, 'saveOrUpdate'])->name('website-settings.saveOrUpdate');
+        });
 
+        
         Route::get('/chai', function(){
             return view('ai.index');
         });

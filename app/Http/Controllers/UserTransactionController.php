@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\DigitalPlatform;
+use App\Models\InteractionType;
+use App\Models\PrimaryService;
 use App\Models\Service;
 use App\Models\TransactionService;
 use App\Models\UserBalance;
@@ -54,12 +57,21 @@ class UserTransactionController extends Controller
         return view('users.transactions.index', compact('transactionServices'));
     }
 
-    public function create()
+    public function create() 
     {
-        $categories = Category::where('status', 1)->get();
-        $services = Service::where('status', 1)->get(); 
-        return view('users.transactions.create', compact('categories', 'services'));
+        $digitalPlatforms = DigitalPlatform::where('status', 1)->get();
+        $interactionTypes = InteractionType::all();
+        return view('users.transactions.create', compact('digitalPlatforms', 'interactionTypes'));
     }
+
+    public function getServices($platformId, $interactionId)
+    {
+        $services = PrimaryService::where('digital_platform_id', $platformId)
+                                ->where('interaction_type_id', $interactionId)
+                                ->get();
+        return response()->json($services);
+    }
+
 
     public function getServicesByCategory($categoryId)
     {
@@ -70,11 +82,11 @@ class UserTransactionController extends Controller
 
     public function storeTransaction(Request $request)
     {
+        // return $request;
         $setting = WebsiteSetting::first();
         try{
             $validator = Validator::make($request->all(), [
-                'category_id' => 'required|exists:categories,id',
-                'service_id'  => 'required|exists:services,id',
+                'service_id'  => 'required|exists:primary_services,id',
                 'target_link' => 'required|url',
                 'quantity'    => 'required|integer|min:1',
             ]);
@@ -83,12 +95,7 @@ class UserTransactionController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
         
-            $category = Category::find($request->category_id);
-            if (!$category) {
-                return redirect()->back()->with('error', 'Category not found');
-            }
-        
-            $service = Service::find($request->service_id);
+            $service = PrimaryService::find($request->service_id);
             if (!$service) {
                 return redirect()->back()->with('error', 'Service not found');
             }
@@ -109,7 +116,7 @@ class UserTransactionController extends Controller
                     $response = Http::asForm()->post($setting->irvan_url.'/order', [
                         'api_id'   => $setting->irvan_app_id,
                         'api_key'  => $setting->irvan_app_key,
-                        'service'  => $service->service_code,
+                        'service'  => $service->originalService->service_code,
                         'target'   => $request->target_link,
                         'quantity' => $request->quantity,
                         'comments' => $request->custom_comments,
@@ -118,7 +125,7 @@ class UserTransactionController extends Controller
                     $response = Http::asForm()->post($setting->irvan_url.'/order', [
                         'api_id'   => $setting->irvan_app_id,
                         'api_key'  => $setting->irvan_app_key,
-                        'service'  => $service->service_code,
+                        'service'  => $service->originalService->service_code,
                         'target'   => $request->target_link,
                         'comments' => $request->custom_comments,
                     ]);
@@ -129,6 +136,7 @@ class UserTransactionController extends Controller
             }
         
             if ($response->failed()) {
+                return $response->json();
                 return redirect()->back()->with('error', 'Order failed, please try again.');
             }
         
@@ -156,20 +164,24 @@ class UserTransactionController extends Controller
         
             try {
                 $transaction = new TransactionService();
-                $transaction->category_id = $request->category_id;
                 $transaction->user_id = Auth::user()->id;
-                $transaction->trx_id = $orderId;
+                $transaction->primary_service_id = $service->id;
+                $transaction->digital_platform_id = $service->digital_platform_id;
+                $transaction->interaction_type_id = $service->interaction_type_id;
+                $transaction->trx_code = $orderId;
                 $transaction->name = $service->name;
-                $transaction->type = $service->type;
+                $transaction->category = $service->originalService->category;
+                $transaction->type = $service->originalService->type;
                 $transaction->price = $service->price;
                 $transaction->refill = $service->refill;
                 $transaction->qty = $request->quantity;
-                $transaction->amount_before = $startCount;
-                $transaction->remaining_amount = $remainingAmount;
+                $transaction->start_count = $startCount;
+                $transaction->remains = $remainingAmount;
                 $transaction->status = 'process';
-                $transaction->link_target = $request->target_link;
-                $transaction->subtotal = round($subtotal);
-                $transaction->comment = $request->custom_comments;
+                $transaction->target_link = $request->target_link;
+                $transaction->total = round($subtotal);
+                $transaction->comments = $request->custom_comments;
+                $transaction->refill = $service->originalService->refill;
                 $transaction->save();
 
                 $userBalance = UserBalance::where('user_id', Auth::user()->id)

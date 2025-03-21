@@ -45,79 +45,101 @@
                 <div class="card-body">
                     <form action="{{ route('users.transactions.storeTransaction') }}" method="POST">
                         @csrf
-                        <!-- Kategori Layanan -->
+
+                        <!-- Digital Platform -->
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="mb-3">
-                                    <label for="category" class="form-label">Kategori</label>
-                                    <select class="form-select select2" id="category" name="category_id" required>
-                                        <option value="" selected>Pilih Kategori</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->category_name }}</option>
+                                    <label for="digital_platform" class="form-label">Digital Platform</label>
+                                    <select class="form-select select2" id="digital_platform" name="digital_platform_id"
+                                        required>
+                                        <option value="" selected>Select Platform</option>
+                                        @foreach ($digitalPlatforms as $platform)
+                                            <option value="{{ $platform->id }}">{{ $platform->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Layanan (Dynamic) -->
-                        <div class="row d-none" id="service-container">
+                        <!-- Interaction Type -->
+                        <div class="row">
                             <div class="col-lg-12">
                                 <div class="mb-3">
-                                    <label for="service" class="form-label">Layanan</label>
-                                    <select class="form-select select2" id="service" name="service_id" required>
-                                        <option value="" selected>Pilih Layanan</option>
+                                    <label for="interaction_type" class="form-label">Interaction Type</label>
+                                    <select class="form-select select2" id="interaction_type" name="interaction_type_id"
+                                        required>
+                                        <option value="" selected>Select Interaction Type</option>
+                                        @foreach ($interactionTypes as $interaction)
+                                            <option value="{{ $interaction->id }}">{{ $interaction->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Deskripsi Card -->
+                        <!-- Services (Dynamic) -->
+                        <div class="row d-none" id="service-container">
+                            <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="service" class="form-label">Service</label>
+                                    <select class="form-select select2" id="service" name="service_id" required>
+                                        <option value="" selected>Select Service</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="serviceDetails" class="d-none border border-primary rounded p-3 mb-3">
                             <p id="serviceName" class="fw-medium mb-0"></p>
                             <p id="servicePrice" class="fw-bold"></p>
-                            <p class="border-top small fw-bold mb-1 pt-1">Deskripsi:</p>
-                            <p id="serviceDescription" class="mb-3"></p>
                         </div>
 
+                        <!-- Link Target -->
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="mb-3">
                                     <label for="target_link" class="form-label">Link Target</label>
                                     <input type="text" class="form-control" id="target_link" name="target_link"
-                                        placeholder="Link Target" required>
+                                        placeholder="Enter target link" required>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mb-3 d-none" id="customCommentSection">
-                            <label for="customComment" class="form-label">Custom Comment</label>
-                            <textarea id="customComment" class="form-control" name="custom_comments" rows="3"
-                                placeholder="Masukkan komentar kustom Anda di sini"></textarea>
+
+                        <!-- Textarea for Comments -->
+                        <div class="row" id="comment-section" style="display: none;">
+                            <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="comments" class="form-label">Comments</label>
+                                    <textarea class="form-control" id="comments" name="comments" rows="4" placeholder="Enter your comments"></textarea>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Jumlah Min/Max -->
+                        <!-- Quantity (min-max) -->
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="mb-3">
-                                    <label for="quantity" class="form-label">Jumlah <span id="min-max-info">(Min: 0 Max:
+                                    <label for="quantity" class="form-label">Quantity <span id="min-max-info">(Min: 0 Max:
                                             0)</span></label>
-                                    <input type="number" class="form-control" id="quantity" name="quantity" min="0"
-                                        max="0" placeholder="Masukkan jumlah" required>
+                                    <input type="number" class="form-control" id="quantity" name="quantity"
+                                        min="0" max="0" placeholder="Enter quantity" required>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Biaya -->
+                        <!-- Price -->
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="mb-3">
-                                    <label for="price" class="form-label">Biaya</label>
+                                    <label for="price" class="form-label">Price</label>
                                     <input type="text" class="form-control" id="totalPrice" name="total_price"
                                         placeholder="Rp" readonly>
                                 </div>
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="col-lg-12">
                                 <button type="submit" class="btn btn-primary">Submit Order</button>
@@ -133,81 +155,79 @@
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>
             $(document).ready(function() {
+                // Initialize Select2
                 $('.select2').select2();
 
-                function escapeHTML(str) {
-                    var div = document.createElement('div');
-                    div.appendChild(document.createTextNode(str));
-                    return div.innerHTML;
-                }
-                $('#category').on('change', function() {
-                    var categoryId = $(this).val();
+                // Interaction Type Change Listener
+                $('#interaction_type').on('change', function() {
+                    const selectedText = $(this).find('option:selected').text().toLowerCase();
+                    const commentSection = $('#comment-section');
+                    const quantityInput = $('#quantity');
 
-                    if (categoryId) {
+                    // Check if the interaction type is a comment
+                    if (selectedText.includes('comment')) {
+                        commentSection.show(); // Show comment section
+                        quantityInput.prop('readonly', true); // Set quantity as readonly
+                    } else {
+                        commentSection.hide(); // Hide comment section
+                        quantityInput.prop('readonly', false); // Make quantity editable
+                    }
+                });
+
+                // Fetch services based on platform and interaction type
+                $('#digital_platform, #interaction_type').on('change', function() {
+                    var platformId = $('#digital_platform').val();
+                    var interactionId = $('#interaction_type').val();
+
+                    if (platformId && interactionId) {
                         $.ajax({
-                            url: `/get-services/${categoryId}`,
+                            url: `/get-services/${platformId}/${interactionId}`,
                             type: 'GET',
                             success: function(data) {
-                                $('#service').empty().append(
-                                    '<option value="" selected>Pilih Layanan</option>');
+                                $('#service').empty().append('<option value="" selected>Select Service</option>');
                                 data.forEach(service => {
+                                    // Format harga menjadi format Indonesia (IDR)
+                                    let formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(service.price);
+                                    
                                     $('#service').append(
                                         `<option 
                                             value="${service.id}" 
-                                            data-name="${service.name}" 
+                                            data-name="${service.type}" 
                                             data-price="${service.price}" 
                                             data-min="${service.min}" 
-                                            data-max="${service.max}" 
-                                            data-description="${escapeHTML(service.note)}" 
-                                            data-type="${service.type}" 
-                                            data-rating="0" 
-                                            data-time="11 jam 20 menit 4 detik"> 
-                                            ${service.name}
-                                            </option>
-                                        `
+                                            data-max="${service.max}"> 
+                                            ${service.type.toUpperCase()} - ${service.price.toLocaleString()}/K
+                                        </option>`
                                     );
                                 });
                                 $('#service-container').removeClass('d-none');
                             }
                         });
                     }
+
                 });
 
+
+                // Service selection change listener
                 $('#service').on('change', function() {
                     var selectedOption = $(this).find('option:selected');
                     var serviceName = selectedOption.data('name');
                     var servicePrice = selectedOption.data('price');
                     var minQty = selectedOption.data('min');
                     var maxQty = selectedOption.data('max');
-                    var serviceDescription = selectedOption.data('description');
-                    var serviceType = selectedOption.data('type');
-                    var serviceTime = selectedOption.data('time');
-                    var serviceRating = selectedOption.data('rating');
+                    var serviceCategory = selectedOption.data('category');
 
-                    $('#serviceName').text(`Nama Layanan: ${serviceName}`);
-                    $('#servicePrice').text(`Harga: Rp ${servicePrice.toLocaleString()}/K`);
-                    $('#serviceDescription').html(serviceDescription);
-                    $('#serviceTime').text(serviceTime);
-                    $('#serviceRating').html('<i class="fa fa-fw fa-star text-secondary"></i>'.repeat(5));
-                    $('#serviceReviews').text(`(0 rating dari 0 penilaian)`);
+                    $('#serviceName').text(`Service Name: ${serviceName.toUpperCase()}`);
+                    $('#servicePrice').text(`Price: Rp ${servicePrice.toLocaleString()}/K`);
+                    $('#serviceCategory').text(`Category: ${serviceCategory}`);
 
                     $('#quantity').attr('min', minQty);
                     $('#quantity').attr('max', maxQty);
                     $('#min-max-info').text(`(Min: ${minQty} Max: ${maxQty})`);
-
-                    if (serviceType === 'Custom Comments') {
-                        $('#quantity').prop('readonly', true);
-                        $('#quantity').val('0');
-                        $('#totalPrice').val('Rp 0'); 
-                        $('#customCommentSection').removeClass('d-none');
-                    } else {
-                        $('#quantity').prop('disabled', false);
-                        $('#customCommentSection').addClass('d-none');
-                    }
-
                     $('#serviceDetails').removeClass('d-none');
                 });
 
+                // Quantity input event to calculate the total price
                 $('#quantity').on('input', function() {
                     var qty = $(this).val();
                     var pricePerThousand = $('#service').find('option:selected').data('price');
@@ -216,15 +236,17 @@
                     $('#totalPrice').val(`Rp ${roundedPrice.toLocaleString()}`);
                 });
 
-
-                $('#customComment').on('input', function() {
-                    var customComments = $(this).val().split(/\r\n|\n/);
-                    var commentCount = customComments.length;
-                    $('#quantity').val(commentCount);
-                    $('#quantity').trigger('input');
+                // Detect enter key in the comment section and calculate qty based on line count
+                $('#comments').on('input', function(e) {
+                    var comment = $(this).val();
+                    var lineCount = comment.split(/\n/).length; // Count lines based on newlines
+                    $('#quantity').val(lineCount); // Set quantity to line count
+                    $('#quantity').trigger('input'); // Trigger input event to recalculate price
                 });
+
             });
         </script>
+
 
         <div class="col-lg-5">
             <div class="card">
