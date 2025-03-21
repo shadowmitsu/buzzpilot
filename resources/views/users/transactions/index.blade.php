@@ -55,7 +55,7 @@
                             @foreach ($transactionServices as $trs)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $trs->trx_id }}</td>
+                                    <td>{{ $trs->trx_code }}</td>
                                     <td>{{ \Carbon\Carbon::parse($trs->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
                                     </td>
                                     <td>{{ \Illuminate\Support\Str::limit($trs->name, 40) }}</td>
@@ -68,8 +68,8 @@
 
                                     <td>{{ $trs->qty }}</td>
                                     <td>{{ number_format($trs->subtotal, 0, ',', '.') }}</td>
-                                    <td>{{ $trs->amount_before }}</td>
-                                    <td>{{ $trs->remaining_amount }}</td>
+                                    <td>{{ $trs->start_count }}</td>
+                                    <td>{{ $trs->remains }}</td>
                                     <td>{{ $trs->status == 'process' ? 'Processing' : 'Completed' }}</td>
                                     <td>
                                         <button class="btn btn-warning btn-sm" data-bs-toggle="modal"

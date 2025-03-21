@@ -35,42 +35,18 @@ class DashboardController extends Controller
             }
         
             $balance = data_get($responseCheckOrder->json(), 'data.balance');    
-            $countTransactionService = TransactionService::count();
-            $totalDeposit = TransactionDeposit::sum('amount');
+            $countTransactionService = 0;
+            $totalDeposit = 0;
             $countUser = User::where('role', 'user')
                 ->count();
 
-            $transactionServices = TransactionService::where('status', 'process')
-                ->paginate(25);
+            $transactionServices = [];
             return view('dashboard.superadmin', compact('balance', 'countTransactionService', 'totalDeposit', 'countUser', 'transactionServices'));
         }else if($user->role == 'operator') {
             return view('dashboard.operator');
         }else{
-            $youtube = Service::where('status', 1)
-                        ->where('name', 'LIKE', '%Youtube%')
-                        ->take(10)
-                        ->get();
-
-            $instagram = Service::where('status', 1)
-                        ->where('name', 'LIKE', '%Instagram%')
-                        ->take(10)
-                        ->get();
-
-            $tiktok = Service::where('status', 1)
-                        ->where('name', 'LIKE', '%Tiktok%')
-                        ->take(10)
-                        ->get();
-
-            $twitter = Service::where('status', 1)
-                        ->where('name', 'LIKE', '%Twitter%')
-                        ->take(10)
-                        ->get();
-
-            $services = $youtube->merge($instagram)->merge($tiktok)->merge($twitter);
-
-            $subtotalThisMonth = TransactionService::where('user_id', Auth::user()->id)
-                ->sum('subtotal');
-
+            $services = [];
+            $subtotalThisMonth = 0;
             return view('dashboard.user', compact('services', 'subtotalThisMonth'));
 
         }

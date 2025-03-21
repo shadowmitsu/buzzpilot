@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('services', function (Blueprint $table) {
+        Schema::create('original_services', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('category_id');
             $table->string('service_code');
+            $table->string('category');
             $table->string('name');
             $table->string('type');
             $table->integer('price');
@@ -22,7 +22,6 @@ return new class extends Migration
             $table->integer('max');
             $table->boolean('refill');
             $table->boolean('status');
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->text('note')->nullable();
             $table->timestamps();
         });
@@ -33,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        Schema::dropIfExists('original_services');
     }
 };

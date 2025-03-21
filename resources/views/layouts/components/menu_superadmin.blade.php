@@ -38,71 +38,24 @@
             <div class="collapse" id="servicesMenu">
                 <ul class="sub-menu">
                     <li class="side-nav-item">
-                        <a href="{{ route('service_categories.index') }}" class="side-nav-link">
-                            <span class="menu-text">Category Services</span>
+                        <a href="{{ route('digital_platforms.index') }}" class="side-nav-link">
+                            <span class="menu-text">Digital & Interaction</span>
                         </a>
                     </li>
                     <li class="side-nav-item">
-                        <a href="{{ route('services.index') }}" class="side-nav-link">
-                            <span class="menu-text">Service List</span>
+                        <a href="{{ route('original_services.index') }}" class="side-nav-link">
+                            <span class="menu-text">Original Services</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a href="{{ route('primary_services.index') }}" class="side-nav-link">
+                            <span class="menu-text">Primary Services</span>
                         </a>
                     </li>
                 </ul>
             </div>
         </li>
 
-        <!-- Payments -->
-        <li class="side-nav-item">
-            <a data-bs-toggle="collapse" href="#paymentsMenu" aria-expanded="false" aria-controls="paymentsMenu"
-                class="side-nav-link">
-                <span class="menu-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-credit-card">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" />
-                        <path d="M3 10l18 0" />
-                        <path d="M7 15l.01 0" />
-                        <path d="M11 15l2 0" />
-                    </svg>
-                </span>
-                <span class="menu-text"> Payments </span>
-                <span class="menu-arrow"></span>
-            </a>
-            <div class="collapse" id="paymentsMenu">
-                <ul class="sub-menu">
-                    <li class="side-nav-item">
-                        <a href="{{ route('payments.index') }}" class="side-nav-link">
-                            <span class="menu-text">Payment</span>
-                        </a>
-                    </li>
-                    <li class="side-nav-item">
-                        <a href="{{ route('payment_accounts.index') }}" class="side-nav-link">
-                            <span class="menu-text">Payment Account</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-
-        <!-- Transaction -->
-        <li class="side-nav-item">
-            <a href="{{ route('transactions.services.index') }}" class="side-nav-link">
-                <span class="menu-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-replace">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M3 3m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
-                        <path d="M15 15m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
-                        <path d="M21 11v-3a2 2 0 0 0 -2 -2h-6l3 3m0 -6l-3 3" />
-                        <path d="M3 13v3a2 2 0 0 0 2 2h6l-3 -3m0 6l3 -3" />
-                    </svg>
-                </span>
-                <span class="menu-text"> Transaction Order</span>
-            </a>
-        </li>
-       
         <!-- Transaction -->
         <li class="side-nav-item">
             <a href="{{ route('transactions.deposits.index') }}" class="side-nav-link">

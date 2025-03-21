@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\TransactionDeposit;
+use App\Models\TransactionTopUp;
+use App\Models\UserBalance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
@@ -15,7 +17,7 @@ class UserDepositController extends Controller
 {
     public function index(Request $request)
     {
-        $depositTransactions = TransactionDeposit::where('user_id', Auth::user()->id)
+        $depositTransactions = TransactionTopUp::where('user_id', Auth::user()->id)
             ->paginate(25);
 
         return view('users.deposit.index', compact('depositTransactions'));
@@ -44,8 +46,7 @@ class UserDepositController extends Controller
     public function storeDeposit(Request $request)
     {
         try {
-            // Cek apakah ada transaksi pending untuk user ini
-            $pendingTransaction = TransactionDeposit::where('user_id', Auth::user()->id)
+            $pendingTransaction = TransactionTopUp::where('user_id', Auth::user()->id)
                 ->where('status', 'pending')
                 ->first();
     
@@ -53,19 +54,16 @@ class UserDepositController extends Controller
                 return redirect()->back()->with(['error' => 'Anda masih memiliki transaksi deposit yang belum selesai. Harap selesaikan sebelum mengajukan deposit baru.']);
             }
     
-            // Validasi request
             $request->validate([
                 'payment_channel_id' => 'required|exists:payment_channels,id',
                 'amount' => 'required|numeric|min:50000|max:10000000',
             ]);
     
-            // Variabel API iPaymu
-            $va = '1179000899'; // Dapatkan dari dashboard iPaymu
-            $apiKey = 'QbGcoO0Qds9sQFDmY0MWg1Tq.xtuh1'; // Dapatkan dari dashboard iPaymu
-            $url = 'https://sandbox.ipaymu.com/api/v2/payment/direct'; // Untuk mode sandbox
-            $referenceId = uniqid(); // Generate unique reference ID
-    
-            // Request Body untuk iPaymu
+            $va = '1179001225790125'; 
+            $apiKey = '3846C23E-7048-4AD4-9A49-0B6F1DBED0A3'; 
+            $url = 'https://my.ipaymu.com/api/v2/payment/direct';
+            $referenceId = uniqid(); 
+
             $body = [
                 'name' => trim(Auth::user()->full_name),
                 'phone' => '085229931237',
@@ -77,14 +75,12 @@ class UserDepositController extends Controller
                 'paymentChannel' => trim("mpa"),
             ];
     
-            // Generate Signature
             $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
             $requestBody = strtolower(hash('sha256', $jsonBody));
             $stringToSign = strtoupper('POST') . ':' . $va . ':' . $requestBody . ':' . $apiKey;
             $signature = hash_hmac('sha256', $stringToSign, $apiKey);
             $timestamp = now()->format('YmdHis');
     
-            // Request header untuk iPaymu
             $headers = [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
@@ -100,12 +96,13 @@ class UserDepositController extends Controller
             }
     
             $responseData = $response->json()['Data'];
-            $transaction = TransactionDeposit::create([
+            $transaction = TransactionTopUp::create([
                 'user_id' => Auth::user()->id,
                 'payment_channel_id' => $request->payment_channel_id,
                 'session_id' => $responseData['SessionId'],
                 'transaction_id' => $responseData['TransactionId'],
                 'reference_id' => $referenceId,
+                'va' => $va,
                 'via' => $responseData['Via'],
                 'channel' => $responseData['Channel'],
                 'payment_no' => $responseData['PaymentNo'],
@@ -118,7 +115,7 @@ class UserDepositController extends Controller
                 'expired' => $responseData['Expired'],
                 'qr_image' => isset($responseData['QrImage']) ? $responseData['QrImage'] : '-',
                 'qr_template' => isset($responseData['QrTemplate']) ? $responseData['QrTemplate'] : '-',
-                'status' => 'pending',
+                'status' => 'unpaid',
             ]);
     
             return redirect()->route('user.deposit.detail', $transaction->id)->with('success', 'Deposit berhasil diajukan.');
@@ -129,9 +126,60 @@ class UserDepositController extends Controller
 
     public function detail($a)
     {
-        $transactionDeposit = TransactionDeposit::where('id', $a)
-            ->first();
-        return view('users.deposit.detail', compact('transactionDeposit'));
+        $transactionDeposit = TransactionTopUp::where('id', $a)->first();
+        if(!$transactionDeposit) {
+            return redirect()->route('user.deposit.index');
+        }
+        $va = '1179001225790125'; 
+        $apiKey = '3846C23E-7048-4AD4-9A49-0B6F1DBED0A3'; 
+        $url = 'https://my.ipaymu.com/api/v2/transaction';
+        $transactionId = "4719";
+        
+        $body = [
+            'transactionId' => $transactionDeposit->trx_code,
+        ];
+        
+        $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
+        $requestBody = strtolower(hash('sha256', $jsonBody));
+        $stringToSign = strtoupper('POST') . ':' . $va . ':' . $requestBody . ':' . $apiKey;
+        $signature = hash_hmac('sha256', $stringToSign, $apiKey);
+        $timestamp = now()->format('YmdHis');
+        
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'signature' => $signature,
+            'va' => $va,
+            'timestamp' => $timestamp,
+        ])->post($url, $body);
+        
+        if ($response->successful()) {
+            $responseData = $response->json();
+            $transactionDeposit = TransactionTopUp::where('id', $a)->first();
+            if ($transactionDeposit) {
+                if($responseData['Data']['PaidStatus'] == 'paid' && $transactionDeposit->paid_status == 'unpaid') {
+                    $transactionDeposit->status = 'approved';
+                    $transactionDeposit->save();
+
+                    $userBalance = UserBalance::where('user_id', $transactionDeposit->user_id)
+                        ->first();
+
+                    if($userBalance) {
+                        $newBalance = $responseData['Data']['Amount'] - $responseData['Data']['Fee'];
+                        $userBalance->balance = $newBalance;
+                        $userBalance->save();
+                    }
+                }
+
+                $transactionDeposit->update([
+                    'status' => $responseData['Data']['StatusDesc'],
+                    'paid_status' => $responseData['Data']['PaidStatus'],
+                ]);
+            }
+
+            return view('users.deposit.detail', compact('transactionDeposit'));
+        } else {
+            return response()->json(['error' => 'Request failed'], 400);
+        }
     }
     
     

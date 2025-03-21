@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\OriginalService;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -22,18 +23,15 @@ class ServiceController extends Controller
         ]);
         
         $apiResponse = $response->json()['data'];
-
+        
         foreach ($apiResponse as $item) {
-            $category = Category::firstOrCreate([
-                'category_name' => $item['category']
-            ]);
-            Service::updateOrCreate(
+            OriginalService::updateOrCreate(
                 ['service_code' => $item['id']],
                 [
                     'service_code' => $item['id'],
                     'name' => $item['name'],
-                    'type' => $item['type'],
-                    'category_id' => $category->id, 
+                    'category' => $item['category'],
+                    'type' => $item['type'], 
                     'price' => $item['price'],
                     'min' => $item['min'],
                     'max' => $item['max'],
