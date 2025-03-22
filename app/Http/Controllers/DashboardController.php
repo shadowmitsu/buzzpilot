@@ -7,6 +7,7 @@ use App\Models\PaymentChannel;
 use App\Models\Service;
 use App\Models\TransactionDeposit;
 use App\Models\TransactionService;
+use App\Models\TransactionTopUp;
 use App\Models\User;
 use App\Models\WebsiteSetting;
 use Illuminate\Http\Request;
@@ -35,12 +36,13 @@ class DashboardController extends Controller
             }
         
             $balance = data_get($responseCheckOrder->json(), 'data.balance');    
-            $countTransactionService = 0;
-            $totalDeposit = 0;
+            $countTransactionService = TransactionService::count();
+            $totalDeposit = TransactionTopUp::count();
             $countUser = User::where('role', 'user')
                 ->count();
 
-            $transactionServices = [];
+            $transactionServices = TransactionService::orderBy('created_at', 'DESC')
+                ->paginate(25);
             return view('dashboard.superadmin', compact('balance', 'countTransactionService', 'totalDeposit', 'countUser', 'transactionServices'));
         }else if($user->role == 'operator') {
             return view('dashboard.operator');
