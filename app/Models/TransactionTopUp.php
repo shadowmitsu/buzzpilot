@@ -12,24 +12,25 @@ class TransactionTopUp extends Model
     protected $fillable = [
         'user_id',
         'payment_channel_id',
-        'session_id',
-        'transaction_id',
-        'reference_id',
-        'va',
-        'via',
-        'channel',
-        'payment_no',
-        'qr_string',
-        'payment_name',
-        'subtotal',
-        'fee',
-        'total',
-        'fee_direction',
-        'expired',
-        'qr_image',
-        'qr_template',
-        'status',
-        'paid_status'
+        'reference',          // Reference dari Tripay
+        'merchant_ref',       // Merchant reference
+        'payment_method',     // Metode pembayaran (misal: BRIVA)
+        'payment_name',       // Nama metode pembayaran (misal: BRI Virtual Account)
+        'customer_name',      // Nama pelanggan
+        'customer_email',     // Email pelanggan
+        'customer_phone',     // Nomor telepon pelanggan
+        'callback_url',       // URL untuk callback
+        'return_url',         // URL pengembalian
+        'amount',             // Jumlah pembayaran
+        'fee_merchant',       // Biaya untuk merchant
+        'fee_customer',       // Biaya untuk customer
+        'total_fee',          // Total biaya
+        'amount_received',    // Jumlah yang diterima setelah potongan biaya
+        'pay_code',           // Kode pembayaran (misal: Virtual Account)
+        'pay_url',            // URL pembayaran jika ada
+        'checkout_url',       // URL untuk proses checkout
+        'status',             // Status pembayaran (misal: UNPAID, PAID)
+        'expired_time',       // Waktu kadaluarsa pembayaran
     ];
 
     public function paymentChannel()

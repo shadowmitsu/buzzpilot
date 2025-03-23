@@ -54,4 +54,40 @@ class DashboardController extends Controller
 
         }
     }
+
+    public function getPaymentChannels()
+    {
+        $apiKey = 'g1LmlGe0j1Ah6BBomCLfjWZGdsy3Zx3MTGJiM3uN';
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+        ])->get('https://tripay.co.id/api/merchant/payment-channel');
+
+        
+        if ($response->successful()) {
+            $res = $response->json(); 
+            foreach($res['data'] as $dt) {
+                PaymentChannel::create([
+                    'group' => $dt['group'],
+                    'code' => $dt['code'],
+                    'name' => $dt['name'],
+                    'type' => $dt['type'],
+                    'fee_merchant_flat' => $dt['fee_merchant']['flat'],
+                    'fee_merchant_percent' => $dt['fee_merchant']['percent'],
+                    'fee_customer_flat' => $dt['fee_customer']['flat'],
+                    'fee_customer_percent' => $dt['fee_customer']['percent'],
+                    'total_fee_flat' => $dt['total_fee']['flat'],
+                    'total_fee_percent' => $dt['total_fee']['percent'],
+                    'minimum_fee' => $dt['minimum_fee'],
+                    'maximum_fee' => $dt['maximum_fee'],
+                    'minimum_amount' => $dt['minimum_amount'],
+                    'maximum_amount' => $dt['maximum_amount'],
+                    'icon_url' => $dt['icon_url'],
+                    'active' => $dt['active'],
+                ]);
+            }
+        } else {
+            return response()->json(['error' => 'Error in fetching data'], $response->status());
+        }
+    }
 }

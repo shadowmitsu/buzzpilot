@@ -72,21 +72,6 @@ class UserTransactionController extends Controller
         return view('users.transactions.mass', compact('digitalPlatforms', 'interactionTypes'));
     }
 
-    public function getServices($platformId, $interactionId)
-    {
-        $services = PrimaryService::where('digital_platform_id', $platformId)
-                                ->where('interaction_type_id', $interactionId)
-                                ->get();
-        return response()->json($services);
-    }
-
-
-    public function getServicesByCategory($categoryId)
-    {
-        $services = Service::where('category_id', $categoryId)->where('status', 1)->get();
-        return response()->json($services);
-    }
-
 
     public function storeTransaction(Request $request)
     {
@@ -143,7 +128,6 @@ class UserTransactionController extends Controller
             }
         
             if ($response->failed()) {
-                return $response->json();
                 return redirect()->back()->with('error', 'Order failed, please try again.');
             }
         

@@ -24,7 +24,7 @@
                                 <div class="card">
                                     <div class="card-body p-3">
                                         <div class="d-flex align-items-center mb-2">
-                                            <img src="{{ $qr->logo }}" width="50px" alt="{{ $qr->name }}">
+                                            <img src="{{ $qr->icon_url }}" width="50px" alt="{{ $qr->name }}">
                                             <div class="ps-3">
                                                 <a href="{{ route('user.deposit.create', $qr->id) }}"
                                                     class="stretched-link text-dark">
@@ -32,7 +32,7 @@
                                                 </a>
                                             </div>
                                         </div>
-                                        <div class="bg-success bg-gradient small p-1 text-center text-light rounded">
+                                        <div class="bg-success small p-1 text-center text-light rounded">
                                             Online [24 Jam]
                                         </div>
                                     </div>
@@ -56,7 +56,7 @@
                                 <div class="card">
                                     <div class="card-body p-3">
                                         <div class="d-flex align-items-center mb-2">
-                                            <img src="{{ $vab->logo }}" width="50px" alt="{{ $vab->name }}">
+                                            <img src="{{ $vab->icon_url }}" width="50px" alt="{{ $vab->name }}">
                                             <div class="ps-3">
                                                 <a href="{{ route('user.deposit.create', $vab->id) }}"
                                                     class="stretched-link text-dark">
@@ -64,7 +64,7 @@
                                                 </a>
                                             </div>
                                         </div>
-                                        <div class="bg-success bg-gradient small p-1 text-center text-light rounded">
+                                        <div class="bg-success small p-1 text-center text-light rounded">
                                             Online [24 Jam]
                                         </div>
                                     </div>

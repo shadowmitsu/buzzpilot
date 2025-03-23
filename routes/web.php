@@ -45,6 +45,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/import-services', [ServiceController::class, 'importServices'])->name('importServices');
 
+Route::get('/tripay/channel', [DashboardController::class, 'getPaymentChannels']);
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

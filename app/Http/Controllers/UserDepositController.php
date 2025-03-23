@@ -27,7 +27,13 @@ class UserDepositController extends Controller
     {
         $channel = PaymentChannel::where('id', $a)
             ->first();
-        
+        $pendingTransaction = TransactionTopUp::where('user_id', Auth::user()->id)
+            ->where('status', 'unpaid')
+            ->first();
+
+        if ($pendingTransaction) {
+            return redirect()->back()->with(['error' => 'Anda masih memiliki transaksi deposit yang belum selesai. Harap selesaikan sebelum mengajukan deposit baru.']);
+        }
         return view('users.deposit.create', compact('channel'));
     }
     
@@ -45,140 +51,129 @@ class UserDepositController extends Controller
 
     public function storeDeposit(Request $request)
     {
+        $paymentChannel = PaymentChannel::where('id', $request->payment_channel_id)
+            ->first();
+        $apiKey       = 'g1LmlGe0j1Ah6BBomCLfjWZGdsy3Zx3MTGJiM3uN';
+        $privateKey   = 'aI8M5-8FLYp-BDYw9-KRm5P-x5pbg';
+        $merchantCode = 'T38493';
+        $merchantRef  = 'INV'.time();
+        $amount       = (int)$request->amount;
+        
         try {
             $pendingTransaction = TransactionTopUp::where('user_id', Auth::user()->id)
-                ->where('status', 'pending')
+                ->where('status', 'unpaid')
                 ->first();
-    
+
             if ($pendingTransaction) {
                 return redirect()->back()->with(['error' => 'Anda masih memiliki transaksi deposit yang belum selesai. Harap selesaikan sebelum mengajukan deposit baru.']);
             }
     
-            $request->validate([
-                'payment_channel_id' => 'required|exists:payment_channels,id',
-                'amount' => 'required|numeric|min:50000|max:10000000',
-            ]);
-    
-            $va = '1179001225790125'; 
-            $apiKey = '3846C23E-7048-4AD4-9A49-0B6F1DBED0A3'; 
-            $url = 'https://my.ipaymu.com/api/v2/payment/direct';
-            $referenceId = uniqid(); 
-
-            $body = [
-                'name' => trim(Auth::user()->full_name),
-                'phone' => '085229931237',
-                'email' => trim(Auth::user()->email),
-                'amount' => floatval($request->amount),
-                'notifyUrl' => trim('https://your-website.com/callback-url'),
-                'referenceId' => $referenceId,
-                'paymentMethod' => trim("qris"),
-                'paymentChannel' => trim("mpa"),
+            $data = [
+                'method'         => $paymentChannel->code, 
+                'merchant_ref'   => $merchantRef,
+                'amount'         => $amount,
+                'customer_name'  => 'Nama Pelanggan',
+                'customer_email' => 'emailpelanggan@domain.com',
+                'customer_phone' => '081234567890',
+                'order_items'    => [
+                    [
+                        'sku'         => 'FB-06',
+                        'name'        => 'Nama Produk 1',
+                        'price'       => $amount,
+                        'quantity'    => 1,
+                        'product_url' => 'https://tokokamu.com/product/nama-produk-1',
+                        'image_url'   => 'https://tokokamu.com/product/nama-produk-1.jpg',
+                    ],
+                ],
+                'return_url'   => 'https://panel.buzzpilot.org/dashboard',
+                'expired_time' => (time() + (24 * 60 * 60)),
+                'signature'    => hash_hmac('sha256', $merchantCode.$merchantRef.$amount, $privateKey)
             ];
     
-            $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
-            $requestBody = strtolower(hash('sha256', $jsonBody));
-            $stringToSign = strtoupper('POST') . ':' . $va . ':' . $requestBody . ':' . $apiKey;
-            $signature = hash_hmac('sha256', $stringToSign, $apiKey);
-            $timestamp = now()->format('YmdHis');
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey
+            ])->post('https://tripay.co.id/api/transaction/create', $data);
+            $responseData = $response->json()['data'];
     
-            $headers = [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-                'va' => $va,
-                'signature' => $signature,
-                'timestamp' => $timestamp,
-            ];
-    
-            $response = Http::withHeaders($headers)->post($url, $body);
-    
-            if ($response->failed()) {
-                return redirect()->back()->with(['error' => 'Gagal memproses pembayaran: ' . $response->body()]);
-            }
-    
-            $responseData = $response->json()['Data'];
-            $transaction = TransactionTopUp::create([
-                'user_id' => Auth::user()->id,
+            TransactionTopUp::create([
+                'user_id'            => Auth::user()->id,
                 'payment_channel_id' => $request->payment_channel_id,
-                'session_id' => $responseData['SessionId'],
-                'transaction_id' => $responseData['TransactionId'],
-                'reference_id' => $referenceId,
-                'va' => $va,
-                'via' => $responseData['Via'],
-                'channel' => $responseData['Channel'],
-                'payment_no' => $responseData['PaymentNo'],
-                'qr_string' => isset($responseData['qr_string']) ? $responseData['qr_string'] : '-',
-                'payment_name' => $responseData['PaymentName'],
-                'subtotal' => $responseData['SubTotal'],
-                'fee' => $responseData['Fee'],
-                'total' => $responseData['Total'],
-                'fee_direction' => $responseData['FeeDirection'],
-                'expired' => $responseData['Expired'],
-                'qr_image' => isset($responseData['QrImage']) ? $responseData['QrImage'] : '-',
-                'qr_template' => isset($responseData['QrTemplate']) ? $responseData['QrTemplate'] : '-',
-                'status' => 'unpaid',
+                'reference'          => $responseData['reference'], 
+                'merchant_ref'       => $merchantRef,               
+                'payment_method'     => $responseData['payment_method'], 
+                'payment_name'       => $responseData['payment_name'],   
+                'customer_name'      => $responseData['customer_name'],  
+                'customer_email'     => $responseData['customer_email'], 
+                'customer_phone'     => $responseData['customer_phone'], 
+                'callback_url'       => 'https://panel.buzzpilot.org/callback/tripay',
+                'return_url'         => 'https://panel.buzzpilot.org/dashboard',
+                'amount'             => $amount,                     
+                'fee_merchant'       => $responseData['fee_merchant'], 
+                'fee_customer'       => $responseData['fee_customer'], 
+                'total_fee'          => $responseData['total_fee'],     
+                'amount_received'    => $responseData['amount_received'], 
+                'pay_code'           => $responseData['pay_code'],    
+                'pay_url'            => $responseData['pay_url'],     
+                'checkout_url'       => $responseData['checkout_url'],
+                'status'             => 'UNPAID', 
+                'expired_time'       => date('Y-m-d H:i:s', $responseData['expired_time']), // Waktu kadaluarsa transaksi
             ]);
-    
-            return redirect()->route('user.deposit.detail', $transaction->id)->with('success', 'Deposit berhasil diajukan.');
+
+            return redirect($responseData['checkout_url']);
         } catch (\Exception $e) {
             return redirect()->back()->with(['error' => 'Terjadi kesalahan saat mengajukan deposit: ' . $e->getMessage()]);
         }
     }
-
+    
     public function detail($a)
     {
         $transactionDeposit = TransactionTopUp::where('id', $a)->first();
         if(!$transactionDeposit) {
             return redirect()->route('user.deposit.index');
         }
-        $va = '1179001225790125'; 
-        $apiKey = '3846C23E-7048-4AD4-9A49-0B6F1DBED0A3'; 
-        $url = 'https://my.ipaymu.com/api/v2/transaction';
-        $transactionId = "4719";
-        
-        $body = [
-            'transactionId' => $transactionDeposit->trx_code,
+       
+        $apiKey = 'g1LmlGe0j1Ah6BBomCLfjWZGdsy3Zx3MTGJiM3uN';
+
+        $payload = [
+            'reference' => $transactionDeposit->reference,
         ];
-        
-        $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
-        $requestBody = strtolower(hash('sha256', $jsonBody));
-        $stringToSign = strtoupper('POST') . ':' . $va . ':' . $requestBody . ':' . $apiKey;
-        $signature = hash_hmac('sha256', $stringToSign, $apiKey);
-        $timestamp = now()->format('YmdHis');
-        
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'signature' => $signature,
-            'va' => $va,
-            'timestamp' => $timestamp,
-        ])->post($url, $body);
-        
-        if ($response->successful()) {
-            $responseData = $response->json();
-            $transactionDeposit = TransactionTopUp::where('id', $a)->first();
-            if ($transactionDeposit) {
-                if($responseData['Data']['PaidStatus'] == 'paid' && $transactionDeposit->paid_status == 'unpaid') {
-                    $transactionDeposit->status = 'approved';
-                    $transactionDeposit->save();
 
-                    $userBalance = UserBalance::where('user_id', $transactionDeposit->user_id)
-                        ->first();
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+            ])->get('https://tripay.co.id/api/transaction/check-status', $payload);
 
-                    if($userBalance) {
-                        $newBalance = $responseData['Data']['Amount'] - $responseData['Data']['Fee'];
-                        $userBalance->balance = $newBalance;
-                        $userBalance->save();
+            if ($response->successful()) {
+                $responseData = $response->json();
+                $transactionDeposit = TransactionTopUp::where('id', $a)->first();
+                if($responseData['message'] != 'Status transaksi belum sukses. Coba beberapa menit lagi') {
+                    if ($transactionDeposit) {
+                        if($responseData['Data']['PaidStatus'] == 'paid' && $transactionDeposit->paid_status == 'unpaid') {
+                            $transactionDeposit->status = 'approved';
+                            $transactionDeposit->save();
+        
+                            $userBalance = UserBalance::where('user_id', $transactionDeposit->user_id)
+                                ->first();
+        
+                            if($userBalance) {
+                                $newBalance = $responseData['Data']['Amount'] - $responseData['Data']['Fee'];
+                                $userBalance->balance = $newBalance;
+                                $userBalance->save();
+                            }
+                        }
+        
+                        $transactionDeposit->update([
+                            'status' => $responseData['message'] == 'Status transaksi saat ini PAID' ? 'PAID' : strtoupper($transactionDeposit->status)
+                        ]);
                     }
+        
                 }
-
-                $transactionDeposit->update([
-                    'status' => $responseData['Data']['StatusDesc'],
-                    'paid_status' => $responseData['Data']['PaidStatus'],
-                ]);
+                return view('users.deposit.detail', compact('transactionDeposit'));
+            } else {
+                return redirect()->route('user.deposit.index');
             }
-
-            return view('users.deposit.detail', compact('transactionDeposit'));
-        } else {
-            return response()->json(['error' => 'Request failed'], 400);
+        } catch (\Exception $e) {
+            return redirect()->route('user.deposit.index');
         }
     }
     
