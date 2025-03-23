@@ -62,8 +62,10 @@ class DigitalPlatformController extends Controller
         return redirect()->route('digital_platforms.index')->with('success', 'Digital platform updated successfully.');
     }
 
-    public function destroy(DigitalPlatform $digitalPlatform)
+    public function destroy($a)
     {
+        $digitalPlatform = DigitalPlatform::where('id', $a)
+            ->first();
         $digitalPlatform->delete();
         return redirect()->back()->with('success', 'Digital Platform deleted successfully.');
     }

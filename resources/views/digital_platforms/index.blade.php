@@ -134,7 +134,6 @@
     <script>
         function setEditModalData(id, name, icon, status) {
             document.getElementById('name_edit').value = name;
-            document.getElementById('icon_edit').value = icon;
             document.getElementById('status_edit').value = status;
 
             document.getElementById('editDigitalPlatformForm').action = `/digital-platforms/${id}/update`;
