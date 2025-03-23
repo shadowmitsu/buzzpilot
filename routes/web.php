@@ -48,7 +48,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/users/transactions', [UserTransactionController::class, 'index'])->name('users.transactions.index');
     Route::get('/users/transactions/create', [UserTransactionController::class, 'create'])->name('users.transactions.create');
+    Route::get('/users/transactions/create/mass', [UserTransactionController::class, 'massCreate'])->name('users.transactions.massCreate');
     Route::post('/users/transactions/store', [UserTransactionController::class, 'storeTransaction'])->name('users.transactions.storeTransaction');
+    Route::post('/users/transactions/mass/store', [UserTransactionController::class, 'storeTransactionMass'])->name('users.transactions.storeTransactionMass');
 
     Route::get('/users/deposit', [UserDepositController::class, 'index'])->name('user.deposit.index');
     Route::get('/users/deposit/channels', [UserDepositController::class, 'channels'])->name('user.deposit.channels');
@@ -57,6 +59,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/deposit/store', [UserDepositController::class, 'storeDeposit'])->name('user.deposit.storeDeposit');
     Route::get('/get-services/{platformId}/{interactionId}', [UserTransactionController::class, 'getServices']);
 
+    Route::get('/chai', function(){
+        return view('ai.index');
+    })->name('ai.generate');
+    Route::post('/chai/generate', [ChaiController::class, 'generate'])->name('chai.generate');
+    
     Route::get('/get-payment-account/{paymentId}', function($paymentId) {
         $account = \App\Models\PaymentAccount::where('payment_id', $paymentId)
             ->where('is_active', 1)
@@ -116,12 +123,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [WebsiteSettingController::class, 'index'])->name('website-settings.index');
             Route::post('/save', [WebsiteSettingController::class, 'saveOrUpdate'])->name('website-settings.saveOrUpdate');
         });
-
-        
-        Route::get('/chai', function(){
-            return view('ai.index');
-        });
-        Route::post('/chai/generate', [ChaiController::class, 'generate'])->name('chai.generate');
     });
 });
 

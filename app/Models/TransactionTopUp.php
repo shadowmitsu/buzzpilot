@@ -36,5 +36,10 @@ class TransactionTopUp extends Model
     {
         return $this->hasOne(PaymentChannel::class, 'id', 'payment_channel_id');
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
     
 }
