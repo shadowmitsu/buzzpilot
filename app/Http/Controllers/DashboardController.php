@@ -48,7 +48,8 @@ class DashboardController extends Controller
             return view('dashboard.operator');
         }else{
             $services = [];
-            $subtotalThisMonth = 0;
+            $subtotalThisMonth = TransactionService::where('user_id', Auth::user()->id)
+                ->count();
             return view('dashboard.user', compact('services', 'subtotalThisMonth'));
 
         }
