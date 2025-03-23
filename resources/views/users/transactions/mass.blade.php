@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="card-body">
-                    <form action="{{ route('users.transactions.storeTransactionMass') }}" method="POST">
+                    <form action="{{ route('users.transactions.storeTransaction') }}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-lg-12">
@@ -89,11 +89,13 @@
                         <div id="serviceDetails" class="d-none border border-primary rounded p-3 mb-3">
                             <p id="serviceName" class="fw-medium mb-0"></p>
                             <p id="servicePrice" class="fw-bold"></p>
+                            <p id="minQty" class="fw-bold"></p>
+                            <p id="maxQty" class="fw-bold"></p>
                         </div>
 
                         <div id="bulkEntries">
                             <div class="row entry-row">
-                                <div class="col-lg-4">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="target_link_1" class="form-label">Link Target</label>
                                         <input type="text" class="form-control" id="target_link_1" name="target_link[]"
@@ -101,7 +103,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-lg-2">
+                                <div class="col-md-2 quantity-col">
                                     <div class="mb-3">
                                         <label for="quantity_1" class="form-label">Quantity</label>
                                         <input type="number" class="form-control quantity-input" id="quantity_1"
@@ -109,7 +111,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-lg-4 comment-section d-none">
+                                <div class="col-md-4 comment-section d-none">
                                     <div class="mb-3">
                                         <label for="comments_1" class="form-label">Comments</label>
                                         <textarea class="form-control" id="comments_1" name="comments[]" rows="1"
@@ -117,11 +119,17 @@
                                     </div>
                                 </div>
 
-                                <div class="col-lg-2">
+                                <div class="col-md-2 price-col">
                                     <div class="mb-3">
                                         <label for="totalPrice_1" class="form-label">Price</label>
                                         <input type="text" class="form-control total-price-input" id="totalPrice_1"
                                             name="total_price[]" placeholder="Rp" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-lg-1">
+                                    <div class="col-lg-12">
+                                        <label for="totalPrice_1" class="form-label">Action</label>
+                                        <button type="button" class="btn btn-danger btn-sm delete-entry">Delete</button>
                                     </div>
                                 </div>
                             </div>
@@ -129,11 +137,11 @@
 
                         <div class="row">
                             <div class="col-lg-12">
-                                <button type="button" class="btn btn-success" id="addMoreBtn">Add More</button>
+                                <button type="button" class="btn btn-success btn-sm" id="addMoreBtn">Add More</button>
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row mt-3">
                             <div class="col-lg-12">
                                 <button type="submit" class="btn btn-primary">Submit</button>
                             </div>
@@ -152,45 +160,77 @@
         <script>
             $(document).ready(function() {
                 let entryIndex = 1;
+                const maxEntries = 20; // Maksimal 20 entri
 
                 // Add more entry rows
                 $('#addMoreBtn').on('click', function() {
-                    entryIndex++;
-                    const newEntryRow = `
-                        <div class="row entry-row">
-                            <div class="col-lg-4">
-                                <div class="mb-3">
-                                    <label for="target_link_${entryIndex}" class="form-label">Link Target</label>
-                                    <input type="text" class="form-control" id="target_link_${entryIndex}" name="target_link[]" placeholder="Enter target link" required>
+                    if (entryIndex < maxEntries) { // Cek apakah sudah mencapai batas maksimal
+                        entryIndex++;
+                        const newEntryRow = `
+                            <div class="row entry-row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="target_link_${entryIndex}" class="form-label">Link Target</label>
+                                        <input type="text" class="form-control" id="target_link_${entryIndex}" name="target_link[]" placeholder="Enter target link" required>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-lg-2">
-                                <div class="mb-3">
-                                    <label for="quantity_${entryIndex}" class="form-label">Quantity</label>
-                                    <input type="number" class="form-control quantity-input" id="quantity_${entryIndex}" name="quantity[]" min="0" placeholder="Enter quantity" required>
+                                <div class="col-md-2 quantity-col">
+                                    <div class="mb-3">
+                                        <label for="quantity_${entryIndex}" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control quantity-input" id="quantity_${entryIndex}" name="quantity[]" min="0" placeholder="Qty" required>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-lg-4 comment-section d-none">
-                                <div class="mb-3">
-                                    <label for="comments_${entryIndex}" class="form-label">Comments</label>
-                                    <textarea class="form-control comments" id="comments_${entryIndex}" name="comments[]" rows="1" placeholder="Enter your comments (optional)"></textarea>
+                                <div class="col-md-4 comment-section d-none">
+                                    <div class="mb-3">
+                                        <label for="comments_${entryIndex}" class="form-label">Comments</label>
+                                        <textarea class="form-control comments" id="comments_${entryIndex}" name="comments[]" rows="1" placeholder="Enter your comments (optional)"></textarea>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-lg-2">
-                                <div class="mb-3">
-                                    <label for="totalPrice_${entryIndex}" class="form-label">Price</label>
-                                    <input type="text" class="form-control total-price-input" id="totalPrice_${entryIndex}" name="total_price[]" placeholder="Rp" readonly>
+                                <div class="col-md-2 price-col">
+                                    <div class="mb-3">
+                                        <label for="totalPrice_${entryIndex}" class="form-label">Price</label>
+                                        <input type="text" class="form-control total-price-input" id="totalPrice_${entryIndex}" name="total_price[]" placeholder="Rp" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2 delete-col">
+                                    <div class="col-lg-12">
+                                        <label for="totalPrice_1" class="form-label">Action</label>
+                                        <button type="button" class="btn btn-danger btn-sm delete-entry">Delete</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    $('#bulkEntries').append(newEntryRow);
+                        `;
+                        $('#bulkEntries').append(newEntryRow);
+
+                        $('#comments_' + entryIndex).on('input', function() {
+                            const commentSection = $(this).closest('.row').find('.comment-section');
+                            const quantityCol = $(this).closest('.row').find('.quantity-col');
+                            const priceCol = $(this).closest('.row').find('.price-col');
+
+                            if ($(this).val().trim() !== '') {
+                                commentSection.removeClass('d-none');
+                                quantityCol.removeClass('col-md-4').addClass('col-md-2');
+                                priceCol.removeClass('col-md-4').addClass('col-md-2');
+                            } else {
+                                commentSection.addClass('d-none');
+                                quantityCol.removeClass('col-md-2').addClass('col-md-4');
+                                priceCol.removeClass('col-md-2').addClass('col-md-4');
+                            }
+                        });
+
+                        $('.delete-entry').on('click', function() {
+                            $(this).closest('.row').remove();
+                            entryIndex--;
+                        });
+                    } else {
+                        alert('You can only add up to 20 entries.');
+                    }
                 });
 
-                // Interaction Type Change Listener
                 $('#interaction_type').on('change', function() {
                     const selectedText = $(this).find('option:selected').text().toLowerCase();
                     const commentSection = $('.comment-section');
@@ -199,7 +239,6 @@
                     if (selectedText.includes('comment')) {
                         commentSection.removeClass('d-none');
                         quantityInput.prop('readonly', true);
-
                         $('.comments').on('input', function() {
                             const commentValue = $(this).val();
                             const lineCount = commentValue.split(/\n/).length;
@@ -212,7 +251,6 @@
                     }
                 });
 
-                // Fetch services based on platform and interaction type
                 $('#digital_platform, #interaction_type').on('change', function() {
                     var platformId = $('#digital_platform').val();
                     var interactionId = $('#interaction_type').val();
@@ -231,14 +269,15 @@
                                     }).format(service.price);
 
                                     $('#service').append(`
-                            <option value="${service.id}" 
-                                data-name="${service.type}" 
-                                data-price="${service.price}" 
-                                data-min="${service.min}" 
-                                data-max="${service.max}">
-                                ${service.type.toUpperCase()} - ${formattedPrice}/K
-                            </option>
-                        `);
+                                            <option 
+                                                value="${service.id}" 
+                                                data-name="${service.type}" 
+                                                data-price="${service.price}" 
+                                                data-min="${service.min}" 
+                                                data-max="${service.max}">
+                                                ${service.type.toUpperCase()} - ${formattedPrice}/K
+                                            </option>
+                                        `);
                                 });
                                 $('#service-container').removeClass('d-none');
                             }
@@ -246,7 +285,6 @@
                     }
                 });
 
-                // Service selection change listener
                 $('#service').on('change', function() {
                     var selectedOption = $(this).find('option:selected');
                     var serviceName = selectedOption.data('name');
@@ -262,7 +300,6 @@
                     $('#serviceDetails').removeClass('d-none');
                 });
 
-                // Quantity input event to calculate the total price
                 $(document).on('input', '.quantity-input', function() {
                     var qty = $(this).val();
                     var pricePerThousand = $('#service').find('option:selected').data('price');
@@ -273,8 +310,6 @@
                 });
             });
         </script>
-
-
 
         <div class="col-lg-5">
             <div class="card">

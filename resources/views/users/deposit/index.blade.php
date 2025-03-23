@@ -27,7 +27,6 @@
                     </div>
                 </div>
 
-                <!-- Alert Section -->
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
@@ -54,8 +53,8 @@
                                 <th>Created At</th>
                                 <th>Payment</th>
                                 <th>VIA</th>
-                                <th>Amount Paid</th>
-                                <th>Amount Obtained</th>
+                                <th>Amount</th>
+                                <th>Fee</th>
                                 <th>Status</th>
                                 <th>Transfer Proof</th>
                             </tr>
@@ -66,22 +65,25 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ \Carbon\Carbon::parse($transaction->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
                                     </td>
-                                    <td>{{ $transaction->paymentChannel->name }}</td>
-                                    <td>{{ $transaction->via }}</td>
-                                    <td>{{ number_format($transaction->total, 0, ',', '.') }}</td>
-                                    <td>{{ number_format($transaction->subtotal, 0, ',', '.') }}</td>
+                                    <td>{{ $transaction->payment_method }}</td>
+                                    <td>{{ $transaction->payment_name }}</td>
+                                    <td>{{ number_format($transaction->amount, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($transaction->fee_merchant, 0, ',', '.') }}</td>
                                     <td>
-                                        @if ($transaction->status == 'pending')
-                                            <span class="badge bg-warning">Pending</span>
-                                        @elseif($transaction->status == 'process')
-                                            <span class="badge bg-info">Processing</span>
-                                        @elseif($transaction->status == 'approved')
-                                            <span class="badge bg-success">Approved</span>
-                                        @elseif($transaction->status == 'rejected')
-                                            <span class="badge bg-danger">Rejected</span>
+                                        @if ($transaction->status == 'UNPAID')
+                                            <span class="badge bg-warning">UNPAID</span>
+                                        @elseif($transaction->status == 'CANCELED')
+                                            <span class="badge bg-info">CANCELED</span>
+                                        @elseif($transaction->status == 'PAID')
+                                            <span class="badge bg-success">PAID</span>
+                                        @elseif($transaction->status == 'EXPIRED')
+                                            <span class="badge bg-danger">Expired</span>
                                         @endif
                                     </td>
                                     <td>
+                                        @if ($transaction->status == 'unpaid')
+                                            <a href="{{ $transaction->checkout_url }}" target="_blank" class="btn btn-warning btn-sm">Pay Now</a>
+                                        @endif
                                         <a href="{{ route('user.deposit.detail', $transaction->id) }}" class="btn btn-info btn-sm">Detail</a>
                                     </td>
                                 </tr>
@@ -131,7 +133,6 @@
                     </ul>
                 </div>
             </div>
-
         </div>
     </div>
 @endsection

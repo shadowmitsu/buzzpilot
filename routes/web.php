@@ -45,6 +45,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/import-services', [ServiceController::class, 'importServices'])->name('importServices');
 
+Route::get('/tripay/channel', [DashboardController::class, 'getPaymentChannels']);
+Route::get('/verify-email/{token}', [RegisterController::class, 'verifyEmail'])->name('verify.email');
+Route::get('/forgot-password', [LoginController::class, 'forgotPassword'])->name('forgotPassword');
+Route::post('/resend-verification', [RegisterController::class, 'resendVerification'])->name('resend.verification');
+Route::post('/forgot-password', [LoginController::class, 'sendForgotPasswordEmail'])->name('forgot.password.email');
+
+Route::get('/reset-password', [LoginController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [LoginController::class, 'resetPassword'])->name('password.update');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

@@ -80,14 +80,6 @@ class UserTransactionController extends Controller
         return response()->json($services);
     }
 
-
-    public function getServicesByCategory($categoryId)
-    {
-        $services = Service::where('category_id', $categoryId)->where('status', 1)->get();
-        return response()->json($services);
-    }
-
-
     public function storeTransaction(Request $request)
     {
         $setting = WebsiteSetting::first();
@@ -143,7 +135,6 @@ class UserTransactionController extends Controller
             }
         
             if ($response->failed()) {
-                return $response->json();
                 return redirect()->back()->with('error', 'Order failed, please try again.');
             }
         
