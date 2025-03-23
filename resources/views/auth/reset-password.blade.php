@@ -7,7 +7,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Login | {{ $setting ? $setting->web_name : 'BuzzPilot' }}</title>
+    <title>Reset Password | {{ $setting ? $setting->web_name : 'BuzzPilot' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="{{ $setting ? $setting->web_description : '' }}" name="description" />
     <meta content="Coderthemes" name="author" />
@@ -31,53 +31,44 @@
                             alt="logo light" height="50" class="logo-light">
                     </a>
 
-                    <h4 class="fw-semibold mb-2">Welcome to {{ $setting ? $setting->web_name : 'BuzzPilot' }}</h4>
+                    <h4 class="fw-semibold mb-2">Forgot Password</h4>
 
-                    <p class="text-muted mb-4">Enter your name , email address and password to access account.</p>
+                    <p class="text-muted mb-4">Enter your username or email address to reset your password.</p>
 
-                    <form action="{{ route('login') }}" method="POST" class="text-start mb-3">
+                    <form action="{{ route('password.update') }}" method="POST" class="text-start mb-3">
                         @csrf
+                        <input type="hidden" name="token" value="{{ $token }}">
+
                         <div class="mb-3">
-                            <label class="form-label" for="login">Username or Email</label>
-                            <input type="text" id="login" name="login" class="form-control"
-                                placeholder="Enter your username or email" value="{{ old('login') }}">
-                            @error('login')
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ old('email') }}" required>
+                            @error('email')
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" for="password">Password</label>
-                            <input type="password" id="password" name="password" class="form-control"
-                                placeholder="Enter your password">
-                            <a href="{{ route('forgotPassword') }}" class="text-danger">Forgot password ?</a>
+                            <label for="password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" name="password" required>
                             @error('password')
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <div class="d-flex justify-content-between mb-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                <label class="form-check-label" for="remember">Remember me</label>
-                            </div>
+                        <div class="mb-3">
+                            <label for="password_confirmation" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" name="password_confirmation" required>
                         </div>
 
-                        <div class="d-grid">
-                            <button class="btn btn-primary" type="submit">Login</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary">Reset Password</button>
                     </form>
-                    @if (session('error'))
-                        <div class="alert alert-danger mt-3">{{ session('error') }}</div>
-                        <form action="{{ route('resend.verification') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="identifier" value="{{ old('login') }}">
-                            <button type="submit" class="btn btn-danger btn-sm">Resend Verification Email</button>
-                        </form>
+
+                    @if (session('status'))
+                        <div class="alert alert-success mt-3">{{ session('status') }}</div>
                     @endif
 
-                    <p class="text-danger fs-14 mb-4">Don't have an account?
-                        <a href="{{ route('register.page') }}" class="fw-semibold text-dark ms-1">Register !</a>
+                    <p class="text-danger fs-14 mb-4">Remembered your password?
+                        <a href="{{ route('login') }}" class="fw-semibold text-dark ms-1">Login here</a>
                     </p>
 
                     <p class="mt-auto mb-0">

@@ -9,40 +9,19 @@
                         <h4 class="card-title m-0"><i class="mdi mdi-information-variant me-1"></i> Informasi Pembayaran</h4>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-success alert-border-left alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2 align-middle"></i>
-                            <strong>Gotcha!</strong>
-                            Permintaan deposit berhasil dibuat.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
                         <p>Segera lakukan pembayaran sebelum:</p>
                         <div class="card card-body p-3">
                             <h6 class="fw-medium">Batas Waktu Pembayaran</h6>
-                            <h4 class="m-0 text-danger">{{ $transactionDeposit->expired }}</h4>
+                            <h4 class="m-0 text-danger">{{ $transactionDeposit->expired_time }}</h4>
                         </div>
-                        @if ($transactionDeposit->qr_template)
-                            <div id="qrcode"></div>
+                        @if ($transactionDeposit->status == 'UNPAID')
+                            <p>Silakan klik tombol di bawah ini untuk melakukan pembayaran.</p>
+                            <a href="{{ $transactionDeposit->checkout_url }}" class="btn btn-success bg-gradient mx-1"
+                                target="_blank">
+                                <i class="fa fa-fw fa-paper-plane me-1"></i>
+                                Bayar
+                            </a>
                         @endif
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-                        <script>
-                            document.addEventListener("DOMContentLoaded", function () {
-                                var paymentNo = "{{ $transactionDeposit->payment_no }}";
-                        
-                                if (paymentNo) {
-                                    var qrcode = new QRCode(document.getElementById("qrcode"), {
-                                        text: paymentNo,
-                                        width: 250, 
-                                        height: 250, 
-                                    });
-                                }
-                            });
-                        </script>
-                        <p>Silakan klik tombol di bawah untuk melakukan check status pembayaran.</p>
-                        <a href="#" class="btn btn-success bg-gradient mx-1">
-                            <i class="fa fa-fw fa-paper-plane me-1"></i>
-                            Check Status Bayar
-                        </a>
                     </div>
                 </div>
             </div>
@@ -54,28 +33,26 @@
                     <div class="card-body">
                         <div class="border-bottom pb-3 d-flex">
                             <div class="flex-grow-1">
-                                <h6 class="fw-medium">ID Deposit</h6>#{{ $transactionDeposit->reference_id }}
+                                <h6 class="fw-medium">ID Deposit</h6>#{{ $transactionDeposit->reference }}
                             </div>
-                            @if ($transactionDeposit->paid_status == 'unpaid')     
+                            {{-- @if ($transactionDeposit->paid_status == 'unpaid')     
                                 <div class="align-self-center">
                                     Ada yang salah/tidak sesuai?
                                     <a href=""
                                         class="btn btn-danger bg-gradient btn-sm mx-1"><i class="fa fa-fw fa-times me-1"></i>
                                         Batal</a>
                                 </div>
-                            @endif
+                            @endif --}}
                         </div>
                         <div class="border-bottom py-3">
                             <h6 class="fw-medium">Status</h6>
-                            <div class="border-bottom py-3">
-                                @if ($transactionDeposit->paid_status == 'unpaid')
-                                    <span class="badge bg-warning bg-gradient">Belum Bayar</span>
-                                @elseif($transactionDeposit->paid_status == 'paid')
-                                    <span class="badge bg-success bg-gradient">Berhasil Melakukan Pembayaran</span>
-                                @elseif($transactionDeposit->paid_status == 'canceled')
-                                    <span class="badge bg-secondary bg-gradient">Dibatalkan</span>
-                                @endif
-                            </div>
+                            @if ($transactionDeposit->status == 'UNPAID')
+                                <span class="badge bg-warning bg-gradient">Belum Bayar</span>
+                            @elseif($transactionDeposit->status == 'PAID')
+                                <span class="badge bg-success bg-gradient">Berhasil Melakukan Pembayaran</span>
+                            @elseif($transactionDeposit->status == 'CANCELED')
+                                <span class="badge bg-secondary bg-gradient">Dibatalkan</span>
+                            @endif
 
                         </div>
                         <div class="border-bottom py-3">
@@ -86,16 +63,16 @@
                         </div>
                         <div class="border-bottom py-3">
                             <h6 class="fw-medium">Jumlah Deposit</h6>Rp
-                            {{ number_format($transactionDeposit->subtotal, 0, '.', '.') }}
+                            {{ number_format($transactionDeposit->amount, 0, '.', '.') }}
                         </div>
                         <div class="border-bottom py-3">
-                            <h6 class="fw-medium">Total <small>*Jumlah yang harus dibayar</small></h6>
-                            <h4 class="m-0 text-danger">Rp {{ number_format($transactionDeposit->total, 0, '.', '.') }}
+                            <h6 class="fw-medium">Total <small>*Fee</small></h6>
+                            <h4 class="m-0 text-danger">Rp {{ number_format($transactionDeposit->total_fee, 0, '.', '.') }}
                             </h4>
                         </div>
                         <div class="pt-3">
                             <h6 class="fw-medium">Saldo <small>*Jumlah saldo yang didapatkan</small></h6>
-                            Rp {{ number_format($transactionDeposit->subtotal, 0, '.', '.') }}
+                            Rp {{ number_format($transactionDeposit->amount_received, 0, '.', '.') }}
                         </div>
                     </div>
                 </div>

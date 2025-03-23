@@ -146,20 +146,16 @@ class UserDepositController extends Controller
             if ($response->successful()) {
                 $responseData = $response->json();
                 $transactionDeposit = TransactionTopUp::where('id', $a)->first();
+                // return $responseData;
                 if($responseData['message'] != 'Status transaksi belum sukses. Coba beberapa menit lagi') {
                     if ($transactionDeposit) {
-                        if($responseData['Data']['PaidStatus'] == 'paid' && $transactionDeposit->paid_status == 'unpaid') {
-                            $transactionDeposit->status = 'approved';
-                            $transactionDeposit->save();
-        
-                            $userBalance = UserBalance::where('user_id', $transactionDeposit->user_id)
-                                ->first();
-        
-                            if($userBalance) {
-                                $newBalance = $responseData['Data']['Amount'] - $responseData['Data']['Fee'];
-                                $userBalance->balance = $newBalance;
-                                $userBalance->save();
-                            }
+                        $userBalance = UserBalance::where('user_id', $transactionDeposit->user_id)
+                            ->first();
+    
+                        if($userBalance && $responseData['message'] == 'Status transaksi saat ini PAID') {
+                            $newBalance = $responseData['Data']['Amount'] - $responseData['Data']['Fee'];
+                            $userBalance->balance = $newBalance;
+                            $userBalance->save();
                         }
         
                         $transactionDeposit->update([
@@ -173,6 +169,7 @@ class UserDepositController extends Controller
                 return redirect()->route('user.deposit.index');
             }
         } catch (\Exception $e) {
+            return $e->getMessage();
             return redirect()->route('user.deposit.index');
         }
     }
