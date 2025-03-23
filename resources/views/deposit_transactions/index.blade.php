@@ -43,17 +43,11 @@
                                                 <select class="form-select" id="status-select" name="status">
                                                     <option value="All"
                                                         {{ request('status') == 'All' ? 'selected' : '' }}>All</option>
-                                                    <option value="pending"
-                                                        {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                                    <option value="unpaid"
+                                                        {{ request('status') == 'unpaid' ? 'selected' : '' }}>UnPaid
                                                     </option>
-                                                    <option value="process"
-                                                        {{ request('status') == 'process' ? 'selected' : '' }}>Processing
-                                                    </option>
-                                                    <option value="approved"
-                                                        {{ request('status') == 'approved' ? 'selected' : '' }}>Approved
-                                                    </option>
-                                                    <option value="rejected"
-                                                        {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected
+                                                    <option value="paid"
+                                                        {{ request('status') == 'paid' ? 'selected' : '' }}>Paid
                                                     </option>
                                                 </select>
                                             </div>
@@ -93,12 +87,13 @@
                             <tr>
                                 <th>#</th>
                                 <th>Created At</th>
-                                <th>Account Name</th>
-                                <th>Account Number</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Transfer Proof</th>
-                                <th>Action</th> <!-- New Action column -->
+                                <th>Full Name</th>
+                                <th>Via</th>
+                                <th>Channel</th>
+                                <th>Subtotal</th>
+                                <th>Total</th>
+                                <th>Fee</th>
+                                <th>Paid Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,46 +102,21 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ \Carbon\Carbon::parse($transaction->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
                                     </td>
-                                    <td>{{ $transaction->paymentAccount->account_name }}</td>
-                                    <td>{{ $transaction->paymentAccount->account_number }}</td>
-                                    <td>{{ number_format($transaction->amount, 0, ',', '.') }}</td>
+                                    <td>{{ $transaction->user->full_name }}</td>
+                                    <td>{{ $transaction->via }}</td>
+                                    <td>{{ $transaction->channel }}</td>
+                                    <td>{{ number_format($transaction->subtotal, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($transaction->total, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($transaction->fee, 0, ',', '.') }}</td>
                                     <td>
-                                        @if ($transaction->status == 'pending')
-                                            <span class="badge bg-warning">Pending</span>
-                                        @elseif($transaction->status == 'process')
+                                        @if ($transaction->paid_status == 'unpaid')
+                                            <span class="badge bg-warning">Unpaid</span>
+                                        @elseif($transaction->paid_status == 'process')
                                             <span class="badge bg-info">Processing</span>
-                                        @elseif($transaction->status == 'approved')
-                                            <span class="badge bg-success">Approved</span>
-                                        @elseif($transaction->status == 'rejected')
+                                        @elseif($transaction->paid_status == 'paid')
+                                            <span class="badge bg-success">Paid</span>
+                                        @elseif($transaction->paid_status == 'rejected')
                                             <span class="badge bg-danger">Rejected</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($transaction->transfer_proof)
-                                            <a href="{{ asset('storage/' . $transaction->transfer_proof) }}"
-                                                target="_blank">View Proof</a>
-                                        @else
-                                            <span>No proof uploaded</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($transaction->status == 'pending')
-                                            <!-- Approve button -->
-                                            <form action="{{ route('transactions.deposits.approve', $transaction->id) }}"
-                                                method="POST" style="display:inline-block;">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                            </form>
-                                            <!-- Reject button -->
-                                            <form action="{{ route('transactions.deposits.rejected', $transaction->id) }}"
-                                                method="POST" style="display:inline-block;">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                            </form>
-                                        @else
-                                            <span>N/A</span>
                                         @endif
                                     </td>
                                 </tr>

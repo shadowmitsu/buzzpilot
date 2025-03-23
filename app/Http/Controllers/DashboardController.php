@@ -37,7 +37,7 @@ class DashboardController extends Controller
         
             $balance = data_get($responseCheckOrder->json(), 'data.balance');    
             $countTransactionService = TransactionService::count();
-            $totalDeposit = TransactionTopUp::count();
+            $totalDeposit = TransactionTopUp::sum('total');
             $countUser = User::where('role', 'user')
                 ->count();
 

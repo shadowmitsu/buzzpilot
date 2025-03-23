@@ -44,7 +44,7 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $platform->name }}</td>
-                                    <td><img src="{{ $platform->icon }}" alt="{{ $platform->name }} icon"
+                                    <td><img src="{{ asset('storage/'.$platform->icon) }}" alt="{{ $platform->name }} icon"
                                             style="width: 50px;"></td>
 
                                     <td>{{ $platform->status ? 'Active' : 'Inactive' }}</td>
