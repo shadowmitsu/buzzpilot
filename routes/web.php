@@ -12,9 +12,11 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PrimaryServiceController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TransactionDepositController;
 use App\Http\Controllers\TransactionServiceController;
 use App\Http\Controllers\UserDepositController;
+use App\Http\Controllers\UserTicketController;
 use App\Http\Controllers\UserTransactionController;
 use App\Http\Controllers\WebsiteSettingController;
 use Illuminate\Support\Facades\Route;
@@ -59,20 +61,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/deposit/store', [UserDepositController::class, 'storeDeposit'])->name('user.deposit.storeDeposit');
     Route::get('/get-services/{platformId}/{interactionId}', [UserTransactionController::class, 'getServices']);
 
+    Route::get('/users/tickets', [UserTicketController::class, 'index'])->name('users.ticket');
+    Route::post('/users/tickets/store', [UserTicketController::class, 'store'])->name('users.ticket.store');
+    Route::get('/users/tickets/{a}/detail', [UserTicketController::class, 'detail'])->name('users.ticket.detail');
+    Route::post('/users/tickets/{a}/send/message', [UserTicketController::class, 'sendMessage'])->name('users.ticket.sendmessage');
+    
     Route::get('/chai', function(){
         return view('ai.index');
     })->name('ai.generate');
     Route::post('/chai/generate', [ChaiController::class, 'generate'])->name('chai.generate');
-    
-    Route::get('/get-payment-account/{paymentId}', function($paymentId) {
-        $account = \App\Models\PaymentAccount::where('payment_id', $paymentId)
-            ->where('is_active', 1)
-            ->first();
-    
-        return response()->json([
-            'account' => $account
-        ]);
-    });
 
     
     Route::get('/get-services/{a}', [UserTransactionController::class, 'getServicesByCategory'])->name('users.transactions.getServicesByCategory');
@@ -107,6 +104,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [PrimaryServiceController::class, 'index'])->name('primary_services.index');
             Route::get('/{a}/detail', [PrimaryServiceController::class, 'detail'])->name('primary_services.detail');
             Route::put('/{a}/update', [PrimaryServiceController::class, 'update'])->name('primary_services.update');
+        });
+        
+        Route::prefix('tickets')->group(function () {
+            Route::get('/', [TicketController::class, 'index'])->name('tickets.index');
+            Route::get('/{a}/detail', [TicketController::class, 'detail'])->name('tickets.detail');
+            Route::post('/{a}/message/setore', [TicketController::class, 'sendMessage'])->name('tickets.sendmessage');
         });
         
         Route::prefix('transaction')->group(function () {
