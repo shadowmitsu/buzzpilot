@@ -8,6 +8,7 @@ use App\Models\DigitalPlatform;
 use App\Models\InteractionType;
 use App\Models\PrimaryService;
 use App\Models\Service;
+use App\Models\TicketMessage;
 use App\Models\TransactionService;
 use App\Models\UserBalance;
 use App\Models\WebsiteSetting;
