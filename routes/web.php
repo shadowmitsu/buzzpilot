@@ -103,9 +103,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/update-digital-platforms', [OriginalServiceController::class, 'updateOriginalPlatform'])->name('original_services.updateOriginalPlatform');
             Route::get('/update-interactions', [OriginalServiceController::class, 'updateOriginalInteraction'])->name('original_services.updateOriginalInteraction');
             Route::get('/{a}/assign-primary-service', [OriginalServiceController::class, 'assignPrimaryService'])->name('original_services.assignPrimaryService');
-            Route::post('/store', [IntercationTypeController::class, 'store'])->name('interaction_types.store');
-            Route::put('/{a}/update', [IntercationTypeController::class, 'update'])->name('interaction_types.update');
-            Route::delete('/{a}/destroy', [IntercationTypeController::class, 'destroy'])->name('interaction_types.destroy');
         });
         
 
