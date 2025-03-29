@@ -28,4 +28,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserBalance::class, 'user_id', 'id');
     }
+
+    public function userTransactionService()
+    {
+        return $this->hasMany(TransactionService::class, 'user_id', 'id');
+    }
 }

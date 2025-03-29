@@ -75,8 +75,8 @@
                         <thead class="bg-light-subtle">
                             <tr>
                                 <th>#</th>
-                                <th>Name</th>
                                 <th>Category</th>
+                                <th>Name</th>
                                 <th>Type</th>
                                 <th>Price</th>
                                 <th>Min</th>
@@ -90,10 +90,8 @@
                             @foreach ($services as $service)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ strlen($service->name) > 50 ? substr($service->name, 0, 50) . '...' : $service->name }}
-                                    </td>
-                                    <td>{{ strlen($service->category) > 50 ? substr($service->category, 0, 50) . '...' : $service->category }}
-                                    </td>
+                                    <td>{{ strlen($service->category) > 50 ? substr($service->category, 0, 50) . '...' : $service->category }}</td>
+                                    <td>{{ strlen($service->name) > 50 ? substr($service->name, 0, 50) . '...' : $service->name }}</td>
                                     <td>{{ $service->type }}</td>
                                     <td>{{ $service->price }}</td>
                                     <td>{{ $service->min }}</td>

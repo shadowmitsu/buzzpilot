@@ -68,7 +68,8 @@ class UserTransactionController extends Controller
     public function massCreate() 
     {
         $digitalPlatforms = DigitalPlatform::where('status', 1)->get();
-        $interactionTypes = InteractionType::all();
+        $interactionTypes = InteractionType::where('name', '!=', 'Comment')
+            ->get();
         return view('users.transactions.mass', compact('digitalPlatforms', 'interactionTypes'));
     }
 
@@ -199,6 +200,7 @@ class UserTransactionController extends Controller
 
     public function storeTransactionMass(Request $request)
     {
+        // return $request;
         $setting = WebsiteSetting::first();
         try{
             $validatedData = $request->validate([
