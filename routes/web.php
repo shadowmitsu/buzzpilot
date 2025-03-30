@@ -16,6 +16,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TransactionDepositController;
 use App\Http\Controllers\TransactionServiceController;
 use App\Http\Controllers\UserDepositController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\UserTicketController;
 use App\Http\Controllers\UserTransactionController;
 use App\Http\Controllers\WebsiteSettingController;
@@ -126,6 +127,10 @@ Route::middleware(['auth'])->group(function () {
             });
         
             Route::get('services', [TransactionServiceController::class, 'index'])->name('transactions.services.index');
+        });
+        
+        Route::prefix('user-managements')->group(function () {
+            Route::get('/', [UserManagementController::class, 'index'])->name('user-managements.index');
         });
         
         Route::prefix('website-settings')->group(function () {
