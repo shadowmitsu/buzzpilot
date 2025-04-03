@@ -61,13 +61,13 @@
                                     <td>{{ \Illuminate\Support\Str::limit($trs->name, 40) }}</td>
                                     <td>
                                         <span
-                                            id="link{{ $loop->iteration }}">{{ \Illuminate\Support\Str::limit($trs->link_target, 40) }}</span>
+                                            id="link{{ $trs->target_link }}">{{ \Illuminate\Support\Str::limit($trs->target_link, 40) }}</span>
                                         <button class="btn btn-sm btn-outline-primary"
-                                            onclick="copyToClipboard('link{{ $loop->iteration }}')">Copy</button>
+                                            onclick="copyToClipboard('link{{ $trs->target_link }}')">Copy</button>
                                     </td>
 
                                     <td>{{ $trs->qty }}</td>
-                                    <td>{{ number_format($trs->subtotal, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($trs->total, 0, ',', '.') }}</td>
                                     <td>{{ $trs->start_count }}</td>
                                     <td>{{ $trs->remains }}</td>
                                     <td>{{ $trs->status == 'process' ? 'Processing' : 'Completed' }}</td>
